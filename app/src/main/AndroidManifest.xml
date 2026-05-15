@@ -2,7 +2,27 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Microphone: audio recording during incident -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <!-- SMS: send SOS alert to contacts and 112 without internet -->
+    <uses-permission android:name="android.permission.SEND_SMS" />
+
+    <!-- Vibration: haptic feedback on trigger and cancellation -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <!-- Foreground service: keep recording alive while app is backgrounded -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+
+    <!-- Wake lock: prevent CPU sleep mid-recording -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <!-- Network state: determine network type for incident metadata -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
     <application
+        android:name=".ChakshuApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -11,6 +31,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Chakshu">
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -18,10 +39,33 @@
             android:theme="@style/Theme.Chakshu">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Foreground service with MICROPHONE type for audio recording -->
+        <service
+            android:name=".core.services.ChakshuForegroundService"
+            android:exported="false"
+            android:foregroundServiceType="microphone" />
+
+        <!-- Accessibility service intercepts volume key events on lock screen -->
+        <service
+            android:name=".core.platform.TriggerAccessibilityService"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_service" />
+        </service>
+
+        <!-- WorkManager 2.7+ supports custom Configuration.Provider via Application class directly.
+             ChakshuApplication implements Configuration.Provider to supply HiltWorkerFactory. -->
+
     </application>
 
 </manifest>

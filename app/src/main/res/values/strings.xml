@@ -1,3 +1,20 @@
 <resources>
     <string name="app_name">Chakshu</string>
+
+    <!-- Notification -->
+    <string name="notification_channel_name">System Services</string>
+    <string name="notification_title">Sync active</string>
+    <string name="notification_text">Background sync running</string>
+
+    <!-- Accessibility -->
+    <string name="accessibility_service_description">Required to detect the emergency trigger key sequence</string>
+
+    <!-- Debug screen -->
+    <string name="debug_title">Chakshu Debug</string>
+    <string name="debug_incident_active">Incident active: %s</string>
+    <string name="debug_chunks_recorded">Chunks recorded: %d</string>
+    <string name="debug_last_hash">Last chunk hash: %s</string>
+    <string name="debug_battery">Battery: %d%%</string>
+    <string name="debug_simulate_trigger">Simulate Trigger</string>
+    <string name="debug_stop_incident">Stop Incident</string>
 </resources>
