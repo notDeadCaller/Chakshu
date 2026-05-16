@@ -1,12 +1,14 @@
 package com.chakshu.features.debug
 
 import android.content.Context
+import android.hardware.SensorManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.chakshu.core.db.daos.ChunkDao
 import com.chakshu.core.db.daos.IncidentDao
 import com.chakshu.core.db.entities.ChunkEntity
 import com.chakshu.core.db.entities.IncidentEntity
+import com.chakshu.core.services.ChakshuForegroundService
 import com.chakshu.core.services.IncidentManager
 import com.chakshu.core.utils.BatteryUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -28,6 +30,15 @@ class DebugViewModel @Inject constructor(
     private val chunkDao: ChunkDao,
     private val incidentManager: IncidentManager
 ) : ViewModel() {
+
+    val serviceRunning: StateFlow<Boolean> = ChakshuForegroundService.serviceRunning
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
+    val accessibilityEnabled: StateFlow<Boolean> = ChakshuForegroundService.accessibilityEnabled
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), true)
+
+    val shakeThresholdG: Float =
+        ChakshuForegroundService.SHAKE_THRESHOLD / SensorManager.GRAVITY_EARTH
 
     val activeIncident: StateFlow<IncidentEntity?> = incidentDao.getActiveFlow()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)

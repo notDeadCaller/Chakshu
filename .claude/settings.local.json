@@ -6,7 +6,10 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(./gradlew dependencies *)",
       "WebFetch(domain:plugins.gradle.org)",
-      "Bash(./gradlew assembleDebug)"
+      "Bash(./gradlew assembleDebug)",
+      "Bash(./gradlew test *)",
+      "Bash(./gradlew lint *)",
+      "Bash(./gradlew assembleDebug *)"
     ]
   }
 }

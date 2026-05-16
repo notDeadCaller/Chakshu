@@ -21,6 +21,12 @@
     <!-- Network state: determine network type for incident metadata -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
+    <!-- Post notifications: required on API 33+ for the accessibility-disabled alert -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Telephony hardware is not required — app works on Wi-Fi-only / Chrome OS devices -->
+    <uses-feature android:name="android.hardware.telephony" android:required="false" />
+
     <application
         android:name=".ChakshuApplication"
         android:allowBackup="true"
@@ -63,8 +69,18 @@
                 android:resource="@xml/accessibility_service" />
         </service>
 
-        <!-- WorkManager 2.7+ supports custom Configuration.Provider via Application class directly.
-             ChakshuApplication implements Configuration.Provider to supply HiltWorkerFactory. -->
+        <!-- WorkManager on-demand init: ChakshuApplication implements Configuration.Provider.
+             Remove the default WorkManagerInitializer so WorkManager does not auto-initialise. -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+        </provider>
 
     </application>
 

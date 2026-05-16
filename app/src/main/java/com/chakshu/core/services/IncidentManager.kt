@@ -1,11 +1,9 @@
 package com.chakshu.core.services
 
 import android.content.Context
-import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.util.Log
-import androidx.core.content.ContextCompat
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
@@ -27,52 +25,57 @@ import javax.inject.Singleton
 @Singleton
 class IncidentManager @Inject constructor(
     @param:ApplicationContext private val context: Context,
-    private val incidentDao: IncidentDao
+    private val incidentDao: IncidentDao,
+    private val recordingManager: RecordingManager
 ) {
     private var activeIncidentId: String? = null
 
     suspend fun startIncident() = withContext(Dispatchers.IO) {
-        if (activeIncidentId != null) {
-            Log.d(TAG, "Incident already active: $activeIncidentId")
-            return@withContext
+        try {
+            if (activeIncidentId != null) {
+                Log.d(TAG, "Incident already active: $activeIncidentId")
+                return@withContext
+            }
+
+            val id = UUID.randomUUID().toString()
+            val triggeredAt = NtpUtils.getCurrentTimeMs()
+            val now = System.currentTimeMillis()
+
+            val incident = IncidentEntity(
+                id = id,
+                triggeredAt = triggeredAt,
+                deviceHash = DeviceUtils.getDeviceHash(context),
+                batteryPct = BatteryUtils.getBatteryPct(context),
+                networkType = getNetworkType(),
+                cellTowerId = null,
+                lat = null,
+                lon = null,
+                status = "ACTIVE",
+                createdAt = now
+            )
+            incidentDao.insert(incident)
+            activeIncidentId = id
+            Log.d(TAG, "Incident started: $id")
+
+            val smsRequest = OneTimeWorkRequestBuilder<SmsAlertWorker>()
+                .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+                .setInputData(workDataOf(SmsAlertWorker.KEY_INCIDENT_ID to id))
+                .build()
+            WorkManager.getInstance(context)
+                .enqueueUniqueWork("sms_$id", ExistingWorkPolicy.KEEP, smsRequest)
+
+            recordingManager.startRecording(id)
+            ChakshuForegroundService.instance?.onIncidentStarted()
+        } catch (e: Exception) {
+            Log.e(TAG, "Crash in startIncident", e)
         }
-
-        val id = UUID.randomUUID().toString()
-        val triggeredAt = NtpUtils.getCurrentTimeMs()
-        val now = System.currentTimeMillis()
-
-        val incident = IncidentEntity(
-            id = id,
-            triggeredAt = triggeredAt,
-            deviceHash = DeviceUtils.getDeviceHash(context),
-            batteryPct = BatteryUtils.getBatteryPct(context),
-            networkType = getNetworkType(),
-            cellTowerId = null,
-            lat = null,
-            lon = null,
-            status = "ACTIVE",
-            createdAt = now
-        )
-        incidentDao.insert(incident)
-        activeIncidentId = id
-        Log.d(TAG, "Incident started: $id")
-
-        val smsRequest = OneTimeWorkRequestBuilder<SmsAlertWorker>()
-            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-            .setInputData(workDataOf(SmsAlertWorker.KEY_INCIDENT_ID to id))
-            .build()
-        WorkManager.getInstance(context)
-            .enqueueUniqueWork("sms_$id", ExistingWorkPolicy.KEEP, smsRequest)
-
-        val serviceIntent = Intent(context, ChakshuForegroundService::class.java)
-            .putExtra(ChakshuForegroundService.EXTRA_INCIDENT_ID, id)
-        ContextCompat.startForegroundService(context, serviceIntent)
     }
 
     suspend fun endIncident(incidentId: String) = withContext(Dispatchers.IO) {
         incidentDao.updateStatus(incidentId, "ENDED")
         activeIncidentId = null
-        context.stopService(Intent(context, ChakshuForegroundService::class.java))
+        recordingManager.stopRecording()
+        ChakshuForegroundService.instance?.onIncidentEnded()
         Log.d(TAG, "Incident ended: $incidentId")
     }
 

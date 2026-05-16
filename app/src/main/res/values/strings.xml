@@ -1,17 +1,31 @@
 <resources>
     <string name="app_name">Chakshu</string>
 
-    <!-- Notification -->
+    <!-- Notification — idle (IMPORTANCE_MIN, near-invisible when no incident) -->
+    <string name="notification_idle_channel_name">Protection Status</string>
+    <string name="notification_idle_title">Chakshu</string>
+    <string name="notification_idle_text">Ready</string>
+
+    <!-- Notification — active incident (IMPORTANCE_LOW, shown during recording) -->
     <string name="notification_channel_name">System Services</string>
     <string name="notification_title">Sync active</string>
     <string name="notification_text">Background sync running</string>
+
+    <!-- Notification — safety alert (high priority, shown when trigger is off) -->
+    <string name="notification_alert_channel_name">Safety Alerts</string>
+    <string name="notification_trigger_inactive_title">Trigger inactive</string>
+    <string name="notification_trigger_inactive_text">Tap to re-enable the safety trigger</string>
 
     <!-- Accessibility -->
     <string name="accessibility_service_description">Required to detect the emergency trigger key sequence</string>
 
     <!-- Debug screen -->
     <string name="debug_title">Chakshu Debug</string>
+    <string name="debug_service_running">Service: %s</string>
     <string name="debug_incident_active">Incident active: %s</string>
+    <string name="debug_trigger_active">Trigger: active</string>
+    <string name="debug_trigger_disabled">Trigger: disabled — tap to fix</string>
+    <string name="debug_shake_sensitivity">Shake sensitivity: %.1fg</string>
     <string name="debug_chunks_recorded">Chunks recorded: %d</string>
     <string name="debug_last_hash">Last chunk hash: %s</string>
     <string name="debug_battery">Battery: %d%%</string>

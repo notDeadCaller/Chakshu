@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Build
 import android.telephony.SmsManager
 import android.util.Log
+import com.chakshu.BuildConfig
 import com.chakshu.core.db.entities.ContactEntity
 import com.chakshu.core.db.entities.IncidentEntity
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -24,14 +25,20 @@ class SmsDispatcher @Inject constructor(
         val smsManager = getSmsManager()
 
         val phones = contacts.filter { it.notifySms }.map { it.phone }.toMutableList()
-        phones.add("112")
+        if (!BuildConfig.DEBUG) {
+            phones.add("XXX")   //TODO: CHANGE BEFORE PROD
+        }
 
         for (phone in phones) {
-            try {
-                smsManager.sendTextMessage(phone, null, body, null, null)
-                Log.d(TAG, "SMS sent to $phone")
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to send SMS to $phone", e)
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "DEBUG build — SMS suppressed. Would send to $phone: $body")
+            } else {
+                try {
+                    smsManager.sendTextMessage(phone, null, body, null, null)
+                    Log.d(TAG, "SMS sent to $phone")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to send SMS to $phone", e)
+                }
             }
         }
     }

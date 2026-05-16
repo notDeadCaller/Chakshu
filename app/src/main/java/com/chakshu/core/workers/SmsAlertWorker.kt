@@ -31,7 +31,7 @@ class SmsAlertWorker @AssistedInject constructor(
             ContactEntity(
                 id = "test-contact",
                 name = "Test",
-                phone = "+91XXXXXXXXXX", // TODO Phase 2: replace with DB contacts
+                phone = "+9170036732XX", // TODO Phase 2: replace with DB contacts
                 notifySms = true,
                 notifyPush = false,
                 addedAt = System.currentTimeMillis()
